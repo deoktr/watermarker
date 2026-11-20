@@ -38,9 +38,7 @@ pub fn extract(
     seed: u64,
 ) -> Result<Vec<u8>, String> {
     let slots = capacity(width, height);
-    stego::extract_with(slots, seed, |slot| {
-        buffer[offset(channels, slot)] & 1
-    })
+    stego::extract_with(slots, seed, |slot| buffer[offset(channels, slot)] & 1)
 }
 
 #[cfg(test)]

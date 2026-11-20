@@ -11,8 +11,8 @@ mkdir -p dist
 cp target/release/watermarker dist/watermarker
 
 if readelf -d dist/watermarker 2>/dev/null | grep -q NEEDED; then
-    echo "WARNING: dist/watermarker still has dynamic library dependencies" >&2
-    exit 1
+	echo "WARNING: dist/watermarker still has dynamic library dependencies" >&2
+	exit 1
 fi
 
 echo "Built dist/watermarker (static)"

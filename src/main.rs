@@ -39,7 +39,9 @@ enum Command {
 }
 
 #[derive(Args)]
-#[command(after_help = "Other commands:\n  watermarker verify <FILE>...   Inspect metadata and the hidden payload\n  watermarker --help             List all commands and top-level options")]
+#[command(
+    after_help = "Other commands:\n  watermarker verify <FILE>...   Inspect metadata and the hidden payload\n  watermarker --help             List all commands and top-level options"
+)]
 struct AddArgs {
     /// Input files and/or directories (PNG, JPG, JPEG)
     #[arg(required = true, value_name = "FILE", num_args = 1..)]
@@ -102,7 +104,11 @@ struct AddArgs {
     quality: u8,
 
     /// Key for bit placement (use the same key to verify)
-    #[arg(long, default_value = "watermarker-default-key-v1", value_name = "STRING")]
+    #[arg(
+        long,
+        default_value = "watermarker-default-key-v1",
+        value_name = "STRING"
+    )]
     key: String,
 
     /// Do not draw anything visible
@@ -119,14 +125,20 @@ struct AddArgs {
 }
 
 #[derive(Args)]
-#[command(after_help = "Other commands:\n  watermarker add <FILE>...      Add visible and invisible watermarks\n  watermarker --help             List all commands and top-level options")]
+#[command(
+    after_help = "Other commands:\n  watermarker add <FILE>...      Add visible and invisible watermarks\n  watermarker --help             List all commands and top-level options"
+)]
 struct VerifyArgs {
     /// Input files and/or directories
     #[arg(required = true, value_name = "FILE", num_args = 1..)]
     files: Vec<PathBuf>,
 
     /// Key used when the watermark was created
-    #[arg(long, default_value = "watermarker-default-key-v1", value_name = "STRING")]
+    #[arg(
+        long,
+        default_value = "watermarker-default-key-v1",
+        value_name = "STRING"
+    )]
     key: String,
 
     /// Print machine-readable JSON
@@ -263,11 +275,10 @@ fn run_add(args: AddArgs) -> ExitCode {
     let results: Vec<Result<AddReport, FileFailure>> = files
         .par_iter()
         .map(|path| {
-            process_one(path, &args, &style)
-                .map_err(|message| FileFailure {
-                    input: path.clone(),
-                    message,
-                })
+            process_one(path, &args, &style).map_err(|message| FileFailure {
+                input: path.clone(),
+                message,
+            })
         })
         .collect();
 
@@ -284,7 +295,12 @@ fn run_add(args: AddArgs) -> ExitCode {
                     "off".to_string()
                 } else {
                     let (slots, need) = report.stego.unwrap_or((0, 0));
-                    format!("metadata + {} (slots {} / need {})", report.kind.stego_name(), slots, need)
+                    format!(
+                        "metadata + {} (slots {} / need {})",
+                        report.kind.stego_name(),
+                        slots,
+                        need
+                    )
                 };
                 println!(
                     "OK   {} -> {}  {}x{} {} | visible {} | invisible {} | {} B payload | {:.1} KiB",
@@ -329,11 +345,7 @@ impl Kind {
     }
 }
 
-fn process_one(
-    input: &Path,
-    args: &AddArgs,
-    style: &visible::Style,
-) -> Result<AddReport, String> {
+fn process_one(input: &Path, args: &AddArgs, style: &visible::Style) -> Result<AddReport, String> {
     let (mut image, kind) = load_image(input)?;
     let (width, height) = (image.width(), image.height());
     if width == 0 || height == 0 {
@@ -350,7 +362,13 @@ fn process_one(
         .clone()
         .unwrap_or_else(|| payload::make_id(unix, &file_name, &args.key));
     let text = payload::resolve_text(&args.text, &file_name, &id, unix);
-    let record = Payload::new(id.clone(), unix, file_name, text.clone(), args.hidden.clone());
+    let record = Payload::new(
+        id.clone(),
+        unix,
+        file_name,
+        text.clone(),
+        args.hidden.clone(),
+    );
     let json = record.to_json();
     let frame = if args.no_invisible {
         None
@@ -359,7 +377,10 @@ fn process_one(
     };
 
     if !args.no_visible {
-        let local_style = visible::Style { text: &text, ..*style };
+        let local_style = visible::Style {
+            text: &text,
+            ..*style
+        };
         if image.color().has_alpha() {
             let mut buffer = image.to_rgba8();
             visible::apply(
@@ -393,8 +414,14 @@ fn process_one(
             };
             if let Some(frame) = &frame {
                 let seed = stego::seed_from_key(&args.key);
-                let slots =
-                    png_stego::embed(&mut raw, width as usize, height as usize, channels, frame, seed)?;
+                let slots = png_stego::embed(
+                    &mut raw,
+                    width as usize,
+                    height as usize,
+                    channels,
+                    frame,
+                    seed,
+                )?;
                 stego_info = Some((slots, stego::needed_slots(frame.len())));
             }
             let color_type = if channels == 4 {
@@ -416,8 +443,7 @@ fn process_one(
             let rgb = image.to_rgb8();
             let mut bytes = Vec::new();
             {
-                let mut encoder =
-                    jpeg_encoder::Encoder::new(&mut bytes, args.quality);
+                let mut encoder = jpeg_encoder::Encoder::new(&mut bytes, args.quality);
                 encoder.set_sampling_factor(jpeg_encoder::SamplingFactor::F_2_1);
                 encoder
                     .encode(
@@ -639,7 +665,12 @@ fn run_verify(args: VerifyArgs) -> ExitCode {
             serde_json::to_string_pretty(&json_reports).unwrap_or_else(|_| "[]".into())
         );
     } else if files.len() > 1 {
-        println!("\n{} of {} file(s) carry a watermark, {} failed.", found, files.len(), failures);
+        println!(
+            "\n{} of {} file(s) carry a watermark, {} failed.",
+            found,
+            files.len(),
+            failures
+        );
     }
 
     if failures > 0 {
@@ -685,25 +716,30 @@ fn verify_one(path: &Path, key: &str) -> Result<VerifyReport, String> {
             };
             let slots = png_stego::capacity(image.width() as usize, image.height() as usize);
             stego_slots = Some(slots);
-            match png_stego::extract(&raw, image.width() as usize, image.height() as usize, channels, seed)
-            {
-                Ok(payload) => match Payload::from_json(
-                    std::str::from_utf8(&payload).unwrap_or_default(),
-                ) {
-                    Ok(record) => stego_payload = Some(record),
-                    Err(error) => stego_error = Some(error),
-                },
+            match png_stego::extract(
+                &raw,
+                image.width() as usize,
+                image.height() as usize,
+                channels,
+                seed,
+            ) {
+                Ok(payload) => {
+                    match Payload::from_json(std::str::from_utf8(&payload).unwrap_or_default()) {
+                        Ok(record) => stego_payload = Some(record),
+                        Err(error) => stego_error = Some(error),
+                    }
+                }
                 Err(error) => stego_error = Some(error),
             }
         }
         Kind::Jpeg => {
             match jpeg_stego::extract(&bytes, seed) {
-                Ok(payload) => match Payload::from_json(
-                    std::str::from_utf8(&payload).unwrap_or_default(),
-                ) {
-                    Ok(record) => stego_payload = Some(record),
-                    Err(error) => stego_error = Some(error),
-                },
+                Ok(payload) => {
+                    match Payload::from_json(std::str::from_utf8(&payload).unwrap_or_default()) {
+                        Ok(record) => stego_payload = Some(record),
+                        Err(error) => stego_error = Some(error),
+                    }
+                }
                 Err(error) => stego_error = Some(error),
             }
             stego_slots = jpeg_stego::capacity(&bytes).ok();
@@ -753,7 +789,10 @@ fn print_verify(report: &VerifyReport) {
                 .map(|slots| format!(", {slots} carrier slots"))
                 .unwrap_or_default()
         ),
-        (None, Some(error)) => println!("  hidden {} : not found ({error})", report.kind.stego_name()),
+        (None, Some(error)) => println!(
+            "  hidden {} : not found ({error})",
+            report.kind.stego_name()
+        ),
         (None, None) => println!("  hidden {} : not found", report.kind.stego_name()),
     }
 

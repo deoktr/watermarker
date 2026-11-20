@@ -474,7 +474,8 @@ impl JpegImage {
                         }
                         cursor += 1;
                     }
-                    let end = end.ok_or_else(|| "JPEG scan has no terminating marker".to_string())?;
+                    let end =
+                        end.ok_or_else(|| "JPEG scan has no terminating marker".to_string())?;
                     scan_end = Some(end);
                     pos = end;
                     continue;
@@ -661,9 +662,7 @@ mod tests {
     #[test]
     fn huffman_standard_luma_dc() {
         // Standard JPEG Annex K Table K.3.
-        let bits = [
-            0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-        ];
+        let bits = [0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0];
         let vals = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
         let table = Huff::new(bits, vals);
         assert_eq!(table.encode_symbol(0).unwrap(), (0b00, 2));
@@ -689,9 +688,7 @@ mod tests {
         {
             let mut encoder = Encoder::new(&mut jpeg, 90);
             encoder.set_sampling_factor(SamplingFactor::F_1_1);
-            encoder
-                .encode(&rgb, width, height, ColorType::Rgb)
-                .unwrap();
+            encoder.encode(&rgb, width, height, ColorType::Rgb).unwrap();
         }
 
         let frame = stego::frame(b"jpeg-secret").unwrap();

@@ -89,7 +89,10 @@ where
     for bit in 0..total_bits {
         let value = bit_of(frame, bit);
         for copy in 0..REP {
-            write(permute((3 * bit + copy) as u32, slots as u32, seed) as usize, value);
+            write(
+                permute((3 * bit + copy) as u32, slots as u32, seed) as usize,
+                value,
+            );
         }
     }
     Ok(())

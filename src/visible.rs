@@ -72,14 +72,7 @@ pub fn apply(buffer: &mut [u8], width: usize, height: usize, channels: usize, st
     let tile_h = mask.h as f32 + gap;
 
     let (anchor_x, anchor_y) = if style.single {
-        anchor(
-            width as f32,
-            height as f32,
-            &mask,
-            style.position,
-            cos,
-            sin,
-        )
+        anchor(width as f32, height as f32, &mask, style.position, cos, sin)
     } else {
         (0.0, 0.0)
     };
@@ -105,9 +98,7 @@ pub fn apply(buffer: &mut [u8], width: usize, height: usize, channels: usize, st
                 (u, v)
             };
 
-            if style.single
-                && (u < 0.0 || v < 0.0 || u >= mask.w as f32 || v >= mask.h as f32)
-            {
+            if style.single && (u < 0.0 || v < 0.0 || u >= mask.w as f32 || v >= mask.h as f32) {
                 continue;
             }
 
@@ -135,10 +126,12 @@ pub fn apply(buffer: &mut [u8], width: usize, height: usize, channels: usize, st
             let inv = 1.0 - alpha;
 
             buffer[base] = (buffer[base] as f32 * inv + r).round().clamp(0.0, 255.0) as u8;
-            buffer[base + 1] =
-                (buffer[base + 1] as f32 * inv + g).round().clamp(0.0, 255.0) as u8;
-            buffer[base + 2] =
-                (buffer[base + 2] as f32 * inv + b).round().clamp(0.0, 255.0) as u8;
+            buffer[base + 1] = (buffer[base + 1] as f32 * inv + g)
+                .round()
+                .clamp(0.0, 255.0) as u8;
+            buffer[base + 2] = (buffer[base + 2] as f32 * inv + b)
+                .round()
+                .clamp(0.0, 255.0) as u8;
         }
     }
 }

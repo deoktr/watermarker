@@ -51,7 +51,10 @@ pub fn payload_from_xmp(xmp: &str) -> Option<String> {
     let close = "</wmp:Payload>";
     let start = xmp.find(open)? + open.len();
     let end = xmp[start..].find(close)? + start;
-    let b64: String = xmp[start..end].chars().filter(|c| !c.is_whitespace()).collect();
+    let b64: String = xmp[start..end]
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
     let raw = base64::engine::general_purpose::STANDARD.decode(b64).ok()?;
     String::from_utf8(raw).ok()
 }
