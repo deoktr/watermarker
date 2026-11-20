@@ -1,0 +1,11 @@
+/target/
+/target-*/
+/out/
+/t2/
+/t3/
+/t4/
+/final/
+/col/
+*.wm.png
+*.wm.jpg
+*.wm.jpeg
