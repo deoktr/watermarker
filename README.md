@@ -16,6 +16,31 @@ watermarker verify [OPTIONS] <FILE|DIR>...
 
 `add` is the default, so `watermarker photo.jpg` works.
 
+## Install
+
+Pre-built binaries are published with each GitHub release.
+
+Download and install the binary:
+
+```bash
+curl -fsSL -O "https://github.com/deoktr/watermarker/releases/latest/download/watermarker-x86_64-unknown-linux-gnu"
+install -m 0755 watermarker-x86_64-unknown-linux-gnu ~/.local/bin/watermarker
+rm watermarker-x86_64-unknown-linux-gnu
+```
+
+Make sure `~/.local/bin` is on your `PATH`, for example by appending this to
+`~/.bashrc` or `~/.zshrc`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Then check the install:
+
+```bash
+watermarker --version
+```
+
 ## Quick start
 
 ```sh
